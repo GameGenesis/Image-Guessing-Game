@@ -1,0 +1,1 @@
+[Original Image Source](https://www.businessinsider.com/consumers-arent-finding-minimalist-logos-likable-or-authentic-2019-9#descriptive-logos-are-easier-to-identify-with-3)
