@@ -21,26 +21,39 @@ score = 0
 max_guesses = 3
 
 # Images
-input_image = os.path.join("tmp","logos_original.jpg")
-directory_path = os.path.join("tmp","images")
-extensions = ('png', 'jpg', 'gif')
+input_image = os.path.join("tmp", "logos_original.jpg")
+directory_path = os.path.join("tmp", "images")
+extensions = ("png", "jpg", "gif")
 height = 75
 width = 100
 transpose = False
 
 index = 0
+correct_guess = ""
 
 logos = {
-    "pizza hut" : [1, 2, 7, 8],
-    "dominos" : [3, 4, 9, 10],
-    "animal planet" : [5, 6, 11, 12],
-    "spotify" : [13, 14, 19, 20],
-    "starbucks" : [15, 16, 21, 22],
-    "lufthansa" : [17, 18, 23, 24],
-    "apple" : [25, 26, 31, 32],
-    "wikipedia" : [27, 28, 33, 34],
-    "wwf" : [29, 30, 35, 36],
+    "Pizza Hut" : [1, 2, 7, 8],
+    "Dominos" : [3, 4, 9, 10],
+    "Animal Planet" : [5, 6, 11, 12],
+    "Spotify" : [13, 14, 19, 20],
+    "Starbucks" : [15, 16, 21, 22],
+    "Lufthansa" : [17, 18, 23, 24],
+    "Apple" : [25, 26, 31, 32],
+    "Wikipedia" : [27, 28, 33, 34],
+    "WWF" : [29, 30, 35, 36]
 }
+
+def get_random_image():
+    global correct_guess
+
+    file = random.choice([os.path.join(directory_path, f) for f in os.listdir(directory_path) if True in [f.endswith(e) for e in extensions]])
+    file_name = file.split(".")[0]
+    index = int(file_name.split("-")[1])
+    for k in logos:
+        if index in logos[k]:
+            correct_guess = k
+            break
+    return file
 
 def convert_to_bytes(file_or_bytes, resize=None, fill=False):
     '''
@@ -128,7 +141,7 @@ Then, create the window with the name and layout parameters.
     '''
     sg.theme(window_theme)
     
-    file = random.choice([os.path.join(directory_path, f) for f in os.listdir(directory_path) if True in [f.endswith(e) for e in extensions]])
+    file = get_random_image()
     # Note: do_not_clear set to false on the text input to automatically clear the input field when a button is pressed
     # Note: bind_return_key set to true on the "Ok" button to allow user to submit guess when hitting the return (enter) key
     layout = [  [sg.Text(f"Score: {score}", key="score")],
@@ -167,19 +180,17 @@ If the user can't guess the number within the max guesses, print out the chosen 
     points = 0
 
     user_guess = values["input"]
-    correct = "correct"
+    
+    if user_guess.lower() == correct_guess.lower():
+        window["output"].update(f"Good job! You guessed the logo in {current_guess} guesses!")
+        window["counter"].update("You won!") # Update the guess counter with the win condition
 
-    for k in logos:
-        if index in logos[k] and user_guess == k:
-            window["output"].update(f"Good job! You guessed the logo in {current_guess} guesses!")
-            window["counter"].update("You won!") # Update the guess counter with the win condition
-
-            # Calculate points depending on number of guesses
-            points = calculate_points(current_guess)
-            return True, points # Win condition (game ended)
+        # Calculate points depending on number of guesses
+        points = calculate_points(current_guess)
+        return True, points # Win condition (game ended)
 
     if current_guess >= max_guesses:
-        window["output"].update(f"Unfortunately, you couldn't guess the logo!")
+        window["output"].update(f"Unfortunately, you couldn't guess the logo! It was {correct_guess}")
         window["counter"].update("You lost!") # Update the guess counter with the win state
         return True, points # Win condition (game ended)
 
@@ -214,9 +225,7 @@ if __name__ == "__main__":
             break
         elif event == 'Restart': # If user clicks restart
             # Clear output text field and reset game
-            file = random.choice([os.path.join(directory_path, f) for f in os.listdir(directory_path) if True in [f.endswith(e) for e in extensions]])
-            file_name = file.split(".")[0]
-            index = int(file_name.split("-")[1])
+            file = get_random_image()
             window["image"].update(data=convert_to_bytes(file, (width*2,height*2)))
             window["output"].update("")
             reset_game()
