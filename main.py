@@ -189,6 +189,10 @@ If the user can't guess the number within the max guesses, print out the chosen 
         points = calculate_points(current_guess)
         return True, points # Win condition (game ended)
 
+    if current_guess >= max_guesses - 1:
+        window["output"].update(f"Hint: The name begins with \"{correct_guess[0]}\"")
+        return False, points # Game hasn't ended
+
     if current_guess >= max_guesses:
         window["output"].update(f"Unfortunately, you couldn't guess the logo! It was {correct_guess}")
         window["counter"].update("You lost!") # Update the guess counter with the win state
