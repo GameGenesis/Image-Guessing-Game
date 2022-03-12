@@ -62,6 +62,7 @@ Returns the chosen tile file.
             break
     return file
 
+#PySimpleGUI compatibility function
 def convert_to_bytes(file_or_bytes, resize=None, fill=False):
     '''
 Will convert into bytes and optionally resize an image that is a file or a base64 bytes object.
@@ -74,22 +75,22 @@ Turns into PNG format in the process so that can be displayed by tkinter
 :rtype: (bytes)
     '''
     if isinstance(file_or_bytes, str):
-        img = PIL.Image.open(file_or_bytes)
+        image = PIL.Image.open(file_or_bytes)
     else:
         try:
-            img = PIL.Image.open(io.BytesIO(base64.b64decode(file_or_bytes)))
+            image = PIL.Image.open(io.BytesIO(base64.b64decode(file_or_bytes)))
         except Exception as e:
             dataBytesIO = io.BytesIO(file_or_bytes)
-            img = PIL.Image.open(dataBytesIO)
+            image = PIL.Image.open(dataBytesIO)
 
-    cur_width, cur_height = img.size
+    current_width, current_height = image.size
     if resize:
         new_width, new_height = resize
-        scale = min(new_height / cur_height, new_width / cur_width)
-        img = img.resize((int(cur_width * scale), int(cur_height * scale)), PIL.Image.ANTIALIAS)
+        scale = min(new_height / current_height, new_width / current_width)
+        image = image.resize((int(current_width * scale), int(current_height * scale)), PIL.Image.ANTIALIAS)
     with io.BytesIO() as bio:
-        img.save(bio, format="PNG")
-        del img
+        image.save(bio, format="PNG")
+        del image
         return bio.getvalue()
 
 def crop(input_image, tile_width, tile_height, transpose: bool=False):
