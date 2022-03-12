@@ -47,6 +47,10 @@ correct_answers = {
 }
 
 def get_random_image():
+    '''
+Gets a random tile from the resulting tiles and assigns the answer corresponding to the tile to the correct_answer variable. 
+Returns the chosen tile file. 
+    '''
     global correct_answer
 
     file = random.choice([os.path.join(DIRECTORY_PATH, f) for f in os.listdir(DIRECTORY_PATH) if True in [f.endswith(e) for e in EXTENSIONS]])
@@ -61,7 +65,7 @@ def get_random_image():
 def convert_to_bytes(file_or_bytes, resize=None, fill=False):
     '''
 Will convert into bytes and optionally resize an image that is a file or a base64 bytes object.
-Turns into  PNG format in the process so that can be displayed by tkinter
+Turns into PNG format in the process so that can be displayed by tkinter
 :param file_or_bytes: either a string filename or a bytes base64 image object
 :type file_or_bytes:  (Union[str, bytes])
 :param resize:  optional new size
@@ -89,6 +93,11 @@ Turns into  PNG format in the process so that can be displayed by tkinter
         return bio.getvalue()
 
 def crop(input_image, tile_width, tile_height, transpose: bool=False):
+    '''
+Crops the original image into tiles according to the width and height values passed as arguments.
+Flips images horizontally and vertically if transpose is set to True.
+Saves the tile files in the specified directory path
+    '''
     if os.path.exists(DIRECTORY_PATH) and os.path.isdir(DIRECTORY_PATH):
         if os.listdir(DIRECTORY_PATH):
             return
@@ -121,8 +130,8 @@ If the file does not exist, "w+" creates a new file.
 
 def load_data(path: str, default_value: object):
     '''
-Checks if a path exists, and if it does, open the path and read the first value to return score. 
-Otherwise, create a new csv file with the default score value
+Checks if a path exists, and if it does, open the path and returns the data. 
+Otherwise, create a new csv file with the default value
 Note: file mode "r" opens a file for reading only.
     '''
     if not os.path.exists(path):
@@ -139,7 +148,7 @@ def calculate_points(number_of_guesses: int):
 
 def init_window():
     '''
-Change window theme and define the window layout with game introduction, text, input field, output text, and buttons.
+Change window theme and define the window layout with game introduction, image, text, input field, output text, and buttons.
 Then, create the window with the name and layout parameters.
     '''
     sg.theme(WINDOW_THEME)
@@ -159,8 +168,7 @@ Then, create the window with the name and layout parameters.
     return sg.Window(title=WINDOW_TITLE, layout=layout, finalize=True), layout
 
 def reset_game():
-    # Define number and current_guess gloablly
-    global number
+    # Define current_guess gloablly
     global current_guess
 
     # Reset current guess
@@ -174,17 +182,16 @@ def reset_game():
 def main():
     '''
 Set default number of points for a round to 0.
-Get user input, then check whether the number is higher lower or the same.
-If the number matches, congratulate the user, display the number of guesses, calculate points gained, 
-and return out of the function with win condition as true and the number of points.
-If the user can't guess the number within the max guesses, print out the chosen number, and return 0 points.
+Get user input, then check whether the user answer matches the correct answer, congratulate the user, display the number of guesses, 
+calculate points gained, and return out of the function with win condition as true and the number of points.
+If the user can't get the correct answer within the max guesses, display the correct answer, and return 0 points.
     '''
     global current_guess # Define that the variable current_guess being referenced is the global one
     points = 0
 
-    user_guess = values["input"]
+    user_answer = values["input"]
     
-    if user_guess.lower() == correct_answer.lower():
+    if user_answer.lower() == correct_answer.lower():
         window["output"].update(f"Good job! You guessed the logo in {current_guess} guesses!")
         window["counter"].update("You won!") # Update the guess counter with the win condition
 
@@ -219,7 +226,7 @@ if __name__ == "__main__":
     if data:
         score = int(data[0][0])
 
-    # Init window, then reset random number, current guess, guess counter, and enable input field and button
+    # Init window, then reset chosen image, current guess, guess counter, and enable input field and button
     window, layout = init_window()
     reset_game()
 
