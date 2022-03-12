@@ -10,28 +10,31 @@ import os
 import io
 
 # GUI window parameters
-window_theme = "DarkAmber"
-window_title = "Guessing Game"
+WINDOW_THEME = "DarkAmber"
+WINDOW_TITLE = "Guessing Game"
 
 # Save path & player score
-save_path = "save_data.csv"
+SAVE_PATH = "save_data.csv"
 score = 0
 
 # The maximum number of guesses a user has per game
-max_guesses = 3
+MAX_GUESSES = 3
 
 # Images
-input_image = os.path.join("tmp", "logos_original.jpg")
-directory_path = os.path.join("tmp", "images")
-extensions = ("png", "jpg", "gif")
-height = 75
-width = 100
-transpose = False
+INPUT_IMAGE = os.path.join("tmp", "logos_original.jpg")
+DIRECTORY_PATH = os.path.join("tmp", "images")
+EXTENSIONS = ("png", "jpg", "gif")
 
-index = 0
-correct_guess = ""
+# Setting the dimensions and rotation of the tiles
+HEIGHT = 75
+WIDTH = 100
+TRANSPOSE = False
 
-logos = {
+# The correct answer for the current game
+correct_answer = ""
+
+# Assigning the correct answers for the image tiles
+correct_answers = {
     "Pizza Hut" : [1, 2, 7, 8],
     "Dominos" : [3, 4, 9, 10],
     "Animal Planet" : [5, 6, 11, 12],
@@ -44,27 +47,27 @@ logos = {
 }
 
 def get_random_image():
-    global correct_guess
+    global correct_answer
 
-    file = random.choice([os.path.join(directory_path, f) for f in os.listdir(directory_path) if True in [f.endswith(e) for e in extensions]])
+    file = random.choice([os.path.join(DIRECTORY_PATH, f) for f in os.listdir(DIRECTORY_PATH) if True in [f.endswith(e) for e in EXTENSIONS]])
     file_name = file.split(".")[0]
     index = int(file_name.split("-")[1])
-    for k in logos:
-        if index in logos[k]:
-            correct_guess = k
+    for k in correct_answers:
+        if index in correct_answers[k]:
+            correct_answer = k
             break
     return file
 
 def convert_to_bytes(file_or_bytes, resize=None, fill=False):
     '''
-    Will convert into bytes and optionally resize an image that is a file or a base64 bytes object.
-    Turns into  PNG format in the process so that can be displayed by tkinter
-    :param file_or_bytes: either a string filename or a bytes base64 image object
-    :type file_or_bytes:  (Union[str, bytes])
-    :param resize:  optional new size
-    :type resize: (Tuple[int, int] or None)
-    :return: (bytes) a byte-string object
-    :rtype: (bytes)
+Will convert into bytes and optionally resize an image that is a file or a base64 bytes object.
+Turns into  PNG format in the process so that can be displayed by tkinter
+:param file_or_bytes: either a string filename or a bytes base64 image object
+:type file_or_bytes:  (Union[str, bytes])
+:param resize:  optional new size
+:type resize: (Tuple[int, int] or None)
+:return: (bytes) a byte-string object
+:rtype: (bytes)
     '''
     if isinstance(file_or_bytes, str):
         img = PIL.Image.open(file_or_bytes)
@@ -86,8 +89,8 @@ def convert_to_bytes(file_or_bytes, resize=None, fill=False):
         return bio.getvalue()
 
 def crop(input_image, tile_width, tile_height, transpose: bool=False):
-    if os.path.exists(directory_path) and os.path.isdir(directory_path):
-        if os.listdir(directory_path):
+    if os.path.exists(DIRECTORY_PATH) and os.path.isdir(DIRECTORY_PATH):
+        if os.listdir(DIRECTORY_PATH):
             return
 
     image = Image.open(input_image)
@@ -99,11 +102,11 @@ def crop(input_image, tile_width, tile_height, transpose: bool=False):
             box = (y * tile_width, x * tile_height, (y+1) * tile_width, (x+1) * tile_height)
             tile = image.crop(box).transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM) if transpose else image.crop(box)
 
-            if not os.path.exists(directory_path):
-                os.mkdir(directory_path)
+            if not os.path.exists(DIRECTORY_PATH):
+                os.mkdir(DIRECTORY_PATH)
             
             k += 1
-            path = os.path.join(directory_path, f"Img-{k}.jpg")
+            path = os.path.join(DIRECTORY_PATH, f"Img-{k}.jpg")
             tile.save(path)
 
 def save_data(path: str, *values: object):
@@ -139,21 +142,21 @@ def init_window():
 Change window theme and define the window layout with game introduction, text, input field, output text, and buttons.
 Then, create the window with the name and layout parameters.
     '''
-    sg.theme(window_theme)
+    sg.theme(WINDOW_THEME)
     
     file = get_random_image()
     # Note: do_not_clear set to false on the text input to automatically clear the input field when a button is pressed
     # Note: bind_return_key set to true on the "Ok" button to allow user to submit guess when hitting the return (enter) key
     layout = [  [sg.Text(f"Score: {score}", key="score")],
-                [sg.Image(data=convert_to_bytes(file, (width*2,height*2)), pad=(width,20), key='image')],
-                [sg.Text(f"What is the name of the entity with this logo? You have {max_guesses} tries!")],
+                [sg.Image(data=convert_to_bytes(file, (WIDTH*2,HEIGHT*2)), pad=(WIDTH,20), key='image')],
+                [sg.Text(f"What is the name of the entity with this logo? You have {MAX_GUESSES} tries!")],
                 [sg.Text("Take a guess:", key="counter")],
                 [sg.InputText(key="input", do_not_clear=False)],
                 [sg.Text(size=(50,1), key="output")],
                 [sg.Button("Ok", key="ok", bind_return_key=True), sg.Button("Restart")] ]
 
     # Note: Finalize the window in order to modify the window fields in reset_game() before reading the window
-    return sg.Window(title=window_title, layout=layout, finalize=True), layout
+    return sg.Window(title=WINDOW_TITLE, layout=layout, finalize=True), layout
 
 def reset_game():
     # Define number and current_guess gloablly
@@ -181,7 +184,7 @@ If the user can't guess the number within the max guesses, print out the chosen 
 
     user_guess = values["input"]
     
-    if user_guess.lower() == correct_guess.lower():
+    if user_guess.lower() == correct_answer.lower():
         window["output"].update(f"Good job! You guessed the logo in {current_guess} guesses!")
         window["counter"].update("You won!") # Update the guess counter with the win condition
 
@@ -189,11 +192,11 @@ If the user can't guess the number within the max guesses, print out the chosen 
         points = calculate_points(current_guess)
         return True, points # Win condition (game ended)
 
-    if current_guess >= max_guesses - 1:
-        window["output"].update(f"Hint: The name begins with \"{correct_guess[0]}\"")
+    if current_guess >= MAX_GUESSES - 1:
+        window["output"].update(f"Hint: The name begins with \"{correct_answer[0]}\"")
 
-    if current_guess >= max_guesses:
-        window["output"].update(f"Unfortunately, you couldn't guess the logo! It was {correct_guess}")
+    if current_guess >= MAX_GUESSES:
+        window["output"].update(f"Unfortunately, you couldn't guess the logo! It was {correct_answer}")
         window["counter"].update("You lost!") # Update the guess counter with the win state
         return True, points # Win condition (game ended)
 
@@ -207,10 +210,10 @@ If the user can't guess the number within the max guesses, print out the chosen 
 # Only runs when the current file is explicitly run.
 if __name__ == "__main__":
 
-    crop(input_image, width, height, transpose)
+    crop(INPUT_IMAGE, WIDTH, HEIGHT, TRANSPOSE)
 
     # Load saved data. Default to 0 if file does not exist
-    data = load_data(save_path, 0)
+    data = load_data(SAVE_PATH, 0)
     
     # If list is not empty, assign saved score value
     if data:
@@ -229,7 +232,7 @@ if __name__ == "__main__":
         elif event == 'Restart': # If user clicks restart
             # Clear output text field and reset game
             file = get_random_image()
-            window["image"].update(data=convert_to_bytes(file, (width*2,height*2)))
+            window["image"].update(data=convert_to_bytes(file, (WIDTH*2,HEIGHT*2)))
             window["output"].update("")
             reset_game()
         else: # If user clicks ok
@@ -244,6 +247,6 @@ if __name__ == "__main__":
                 # Add game points to total score and save data in a csv
                 score += points
                 window["score"].update(f"Score: {score}")
-                save_data(save_path, score)
+                save_data(SAVE_PATH, score)
 
     window.close() # Close the window once the loop is exited
