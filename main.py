@@ -87,7 +87,7 @@ Turns into PNG format in the process so that can be displayed by tkinter
     if resize:
         new_width, new_height = resize
         scale = min(new_height / current_height, new_width / current_width)
-        image = image.resize((int(current_width * scale), int(current_height * scale)), PIL.Image.ANTIALIAS)
+        image = image.resize((int(current_width * scale), int(current_height * scale)), Image.Resampling.LANCZOS)
     with io.BytesIO() as bio:
         image.save(bio, format="PNG")
         del image
